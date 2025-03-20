@@ -278,61 +278,54 @@
             }
         }
 
-        function handleSubmit(event) {
-            event.preventDefault(); // Prevent default form submission
-            
-            // Set button to loading state
-            setButtonLoading(true);
-            
-            const form = event.target;
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
-            const { recipient, subject, template, name, company, customContent } = data;
-
-            let emailContent = templates[template];
-            if (template === 'custom') {
-                emailContent = customContent || '<p>No custom content provided yet.</p>';
-            }
-            emailContent = emailContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
-
-            // Send email via Zoho API
-            fetch(`https://mail.zoho.com/api/accounts/${ZOHO_ACCOUNT_ID}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Zoho-oauthtoken ${ZOHO_ACCESS_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    fromAddress: ZOHO_SENDER_EMAIL,
-                    toAddress: recipient,
-                    subject: subject,
-                    content: emailContent,
-                    mailFormat: 'html'
-                })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error(`Failed to send email: ${response.statusText}`);
-                return response.json();
-            })
-            .then(result => {
-                // Reset loading state
-                setButtonLoading(false);
-                document.getElementById('success-message').style.display = 'block';
-                console.log('Email sent successfully:', result);
+        async function handleSubmit(event) {
+                event.preventDefault();
                 
-                // Hide success message after 5 seconds
-                setTimeout(() => {
-                    document.getElementById('success-message').style.display = 'none';
-                }, 5000);
-            })
-            .catch(error => {
-                // Reset loading state
-                setButtonLoading(false);
-                console.error('Error sending email:', error);
-                alert('Failed to send email: ' + error.message);
-            });
+                setButtonLoading(true);
+                
+                const form = event.target;
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                const { recipient, subject, template, name, company, customContent } = data;
 
-            return false; // Prevent page reload
+                let emailContent = templates[template];
+                if (template === 'custom') {
+                    emailContent = customContent || '<p>No custom content provided yet.</p>';
+                }
+                emailContent = emailContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
+
+                try {
+                    const response = await fetch('http://localhost:8888/api/send-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            recipient: recipient,
+                            subject: subject,
+                            content: emailContent
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Failed to send email');
+                    }
+
+                    setButtonLoading(false);
+                    document.getElementById('success-message').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        document.getElementById('success-message').style.display = 'none';
+                    }, 5000);
+                } catch (error) {
+                    setButtonLoading(false);
+                    console.error('Error sending email:', error);
+                    alert('Failed to send email: ' + error.message);
+                }
+
+                return false;
         }
 
         const inputs = document.querySelectorAll('input, textarea, select');
