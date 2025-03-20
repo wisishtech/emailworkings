@@ -51,13 +51,32 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
+            position: relative;
+            min-width: 150px;
         }
-        button:hover:not(:disabled) {
+        button:hover {
             background-color: #0051c3;
         }
         button:disabled {
-            background-color: #cccccc;
+            background-color: #b3d1ff;
             cursor: not-allowed;
+        }
+        button .loader {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
         }
         .template-preview {
             margin-top: 30px;
@@ -119,7 +138,10 @@
                 <input type="text" id="company" name="company" required>
             </div>
 
-            <button type="submit" id="sendButton">Send Email</button>
+            <button id="submit-button" type="submit">
+                Send Email
+                <span class="loader" id="button-loader"></span>
+            </button>
 
             <div id="success-message" class="success-message">
                 Your email has been sent successfully!
@@ -134,8 +156,8 @@
 
     <script>
         // Zoho configuration (replace these with your actual values)
-        const ZOHO_ACCESS_TOKEN = '1000.IO9830I3OKKDPOODQB9HRLHFO7HH2K'; // Update with real token
-        const ZOHO_ACCOUNT_ID = '882558182'; // Verify this
+        const ZOHO_ACCESS_TOKEN = '1000.IO9830I3OKKDPOODQB9HRLHFO7HH2K'; // From Zoho API Console
+        const ZOHO_ACCOUNT_ID = '882558182'; // From Zoho API
         const ZOHO_SENDER_EMAIL = 'admin@wisishtech.com'; // Your verified Zoho email
 
         // Template content
@@ -243,14 +265,25 @@
             return true;
         }
 
+        function setButtonLoading(isLoading) {
+            const button = document.getElementById('submit-button');
+            const loader = document.getElementById('button-loader');
+            
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = 'Sending... <span class="loader" id="button-loader" style="display:inline-block"></span>';
+            } else {
+                button.disabled = false;
+                button.innerHTML = 'Send Email <span class="loader" id="button-loader"></span>';
+            }
+        }
+
         function handleSubmit(event) {
             event.preventDefault(); // Prevent default form submission
-            const sendButton = document.getElementById('sendButton');
             
-            // Disable button and show loading state
-            sendButton.disabled = true;
-            sendButton.textContent = 'Sending...';
-
+            // Set button to loading state
+            setButtonLoading(true);
+            
             const form = event.target;
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
@@ -262,11 +295,8 @@
             }
             emailContent = emailContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
 
-            // Use CORS proxy to bypass CORS restriction
-            const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-            const zohoUrl = `https://mail.zoho.com/api/accounts/${ZOHO_ACCOUNT_ID}/messages`;
-
-            fetch(corsProxy + zohoUrl, {
+            // Send email via Zoho API
+            fetch(`https://mail.zoho.com/api/accounts/${ZOHO_ACCOUNT_ID}/messages`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Zoho-oauthtoken ${ZOHO_ACCESS_TOKEN}`,
@@ -281,23 +311,25 @@
                 })
             })
             .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(JSON.stringify(err)); });
-                }
+                if (!response.ok) throw new Error(`Failed to send email: ${response.statusText}`);
                 return response.json();
             })
             .then(result => {
+                // Reset loading state
+                setButtonLoading(false);
                 document.getElementById('success-message').style.display = 'block';
                 console.log('Email sent successfully:', result);
+                
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('success-message').style.display = 'none';
+                }, 5000);
             })
             .catch(error => {
+                // Reset loading state
+                setButtonLoading(false);
                 console.error('Error sending email:', error);
                 alert('Failed to send email: ' + error.message);
-            })
-            .finally(() => {
-                // Re-enable button and reset text
-                sendButton.disabled = false;
-                sendButton.textContent = 'Send Email';
             });
 
             return false; // Prevent page reload
