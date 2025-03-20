@@ -76,14 +76,8 @@
     <div class="container">
         <h1>Email Template Sender</h1>
         
-        <!-- This form uses Netlify Forms -->
-        <form name="email-template-form" method="POST" data-netlify="true" netlify-honeypot="bot-field" onSubmit="return updatePreview()">
-            <!-- Hidden field for Netlify Forms -->
+        <form name="email-template-form" method="POST" onSubmit="return handleSubmit(event)">
             <input type="hidden" name="form-name" value="email-template-form" />
-            <p class="hidden" style="display:none">
-                <label>Don't fill this out if you're human: <input name="bot-field" /></label>
-            </p>
-
             <div class="form-group">
                 <label for="recipient">Recipient Email</label>
                 <input type="email" id="recipient" name="recipient" required>
@@ -135,6 +129,11 @@
     </div>
 
     <script>
+        // Zoho configuration (replace these with your actual values)
+        const ZOHO_ACCESS_TOKEN = '1000.IO9830I3OKKDPOODQB9HRLHFO7HH2K'; // From Zoho API Console
+        const ZOHO_ACCOUNT_ID = '882558182'; // From Zoho API
+        const ZOHO_SENDER_EMAIL = 'admin@wisishtech.com'; // Your verified Zoho email
+
         // Template content
         const templates = {
             welcome: `
@@ -168,22 +167,18 @@
                     <div style="padding: 20px;">
                         <p>Hello {{name}},</p>
                         <p>Here's what's new this month:</p>
-                        
                         <div style="margin: 20px 0; border-left: 4px solid #4caf50; padding-left: 15px;">
                             <h3>Latest Updates</h3>
                             <p>We've released several new features this month that we think you'll love!</p>
                         </div>
-                        
                         <div style="margin: 20px 0; border-left: 4px solid #4caf50; padding-left: 15px;">
                             <h3>Community Spotlight</h3>
                             <p>Check out these amazing projects from our community members.</p>
                         </div>
-                        
                         <div style="margin: 20px 0; border-left: 4px solid #4caf50; padding-left: 15px;">
                             <h3>Upcoming Events</h3>
                             <p>Join us for our webinar on advanced techniques next week!</p>
                         </div>
-                        
                         <p>Stay tuned for more updates!</p>
                         <p>Best regards,<br>The {{company}} Team</p>
                     </div>
@@ -201,18 +196,15 @@
                     <div style="padding: 20px;">
                         <p>Hello {{name}},</p>
                         <p>We're excited to offer you an exclusive discount on our premium services!</p>
-                        
                         <div style="background-color: #ffe9e9; border: 2px dashed #ff6b6b; padding: 15px; text-align: center; margin: 20px 0;">
                             <h3 style="color: #ff6b6b; margin: 0;">25% OFF</h3>
                             <p>Use code: <strong>SPECIAL25</strong> at checkout</p>
                             <p style="font-size: 12px;">Valid until April 15, 2025</p>
                         </div>
-                        
                         <p>Don't miss this opportunity to upgrade your experience with {{company}}!</p>
                         <div style="text-align: center; margin: 25px 0;">
                             <a href="#" style="background-color: #ff6b6b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">SHOP NOW</a>
                         </div>
-                        
                         <p>Thank you for being a valued customer!</p>
                         <p>Best regards,<br>The {{company}} Team</p>
                     </div>
@@ -225,63 +217,76 @@
             custom: ``
         };
 
-        // Update the preview when the form is loaded
         document.addEventListener('DOMContentLoaded', updatePreview);
 
-        // Change template based on selection
         function changeTemplate() {
             const templateType = document.getElementById('template').value;
             const customFields = document.getElementById('customFields');
-            
-            if (templateType === 'custom') {
-                customFields.style.display = 'block';
-            } else {
-                customFields.style.display = 'none';
-            }
-            
+            customFields.style.display = templateType === 'custom' ? 'block' : 'none';
             updatePreview();
         }
 
-        // Update the email preview
         function updatePreview() {
             const templateType = document.getElementById('template').value;
             const name = document.getElementById('name').value || '{{name}}';
             const company = document.getElementById('company').value || '{{company}}';
-            
             let templateContent = templates[templateType];
-            
             if (templateType === 'custom') {
                 templateContent = document.getElementById('customContent').value || '<p>No custom content provided yet.</p>';
             }
-            
-            // Replace placeholders
-            templateContent = templateContent.replace(/\{\{name\}\}/g, name);
-            templateContent = templateContent.replace(/\{\{company\}\}/g, company);
-            
+            templateContent = templateContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
             document.getElementById('emailPreview').innerHTML = templateContent;
-            
             return true;
         }
 
-        // Add form submission handler for Netlify
-        const form = document.querySelector('form');
-        form.addEventListener('submit', handleSubmit);
-
         function handleSubmit(event) {
-            // Let Netlify handle the form submission
-            // but show success message
-            setTimeout(() => {
+            event.preventDefault(); // Prevent default form submission
+            const form = event.target;
+            const formData = new FormData(form);
+           
+
+const data = Object.fromEntries(formData);
+            const { recipient, subject, template, name, company, customContent } = data;
+
+            let emailContent = templates[template];
+            if (template === 'custom') {
+                emailContent = customContent || '<p>No custom content provided yet.</p>';
+            }
+            emailContent = emailContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
+
+            // Send email via Zoho API
+            fetch(`https://mail.zoho.com/api/accounts/${ZOHO_ACCOUNT_ID}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Zoho-oauthtoken ${ZOHO_ACCESS_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fromAddress: ZOHO_SENDER_EMAIL,
+                    toAddress: recipient,
+                    subject: subject,
+                    content: emailContent,
+                    mailFormat: 'html'
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`Failed to send email: ${response.statusText}`);
+                return response.json();
+            })
+            .then(result => {
                 document.getElementById('success-message').style.display = 'block';
-                // Reset form fields if you want
-                // form.reset();
-            }, 1000);
+                console.log('Email sent successfully:', result);
+            })
+            .catch(error => {
+                console.error('Error sending email:', error);
+                alert('Failed to send email: ' + error.message);
+            });
+
+            return false; // Prevent page reload
         }
 
-        // Update preview when inputs change
         const inputs = document.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            input.addEventListener('input', updatePreview);
-        });
+        inputs.forEach(input => input.addEventListener('input', updatePreview));
     </script>
 </body>
 </html>
