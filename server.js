@@ -1,12 +1,13 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); // Add this for static file serving
+const path = require('path');
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuration
 const ZOHO_ACCESS_TOKEN = '1000.FT9PKUR8G68TM41FLAFSJTF681K3WG';
@@ -17,8 +18,32 @@ const ZOHO_SENDER_EMAIL = 'wizzyalex132@gmail.com';
 app.post('/api/send-email', async (req, res) => {
     try {
         const { recipient, subject, content } = req.body;
-        
-        // Dynamically import node-fetch
+
+        // Input validation
+        if (!recipient || !subject || !content) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Missing required fields',
+                details: {
+                    missingFields: {
+                        recipient: !recipient,
+                        subject: !subject,
+                        content: !content
+                    }
+                }
+            });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(recipient)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid email format',
+                details: { recipient }
+            });
+        }
+
         const fetch = (await import('node-fetch')).default;
 
         const response = await fetch(
@@ -39,27 +64,69 @@ app.post('/api/send-email', async (req, res) => {
             }
         );
 
+        const responseBody = await response.text();
+
         if (!response.ok) {
-            throw new Error(`Failed to send email: ${response.statusText}`);
+            let errorDetails;
+            try {
+                errorDetails = JSON.parse(responseBody);
+            } catch {
+                errorDetails = responseBody;
+            }
+
+            throw new Error(`Failed to send email: ${response.statusText}`, {
+                cause: {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: errorDetails
+                }
+            });
         }
 
-        const result = await response.json();
+        const result = JSON.parse(responseBody);
         res.status(200).json({ 
             success: true, 
             message: 'Email sent successfully',
-            data: result 
+            data: result,
+            requestDetails: {
+                recipient,
+                subject,
+                contentLength: content.length
+            }
         });
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Detailed error sending email:', {
+            message: error.message,
+            cause: error.cause,
+            stack: error.stack
+        });
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to send email',
-            error: error.message 
+            message: error.message || 'Failed to send email',
+            details: {
+                error: error.message,
+                cause: error.cause,
+                timestamp: new Date().toISOString(),
+                endpoint: '/api/send-email'
+            }
         });
     }
 });
 
-// Start server
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({
+        success: false,
+        message: 'Unexpected server error',
+        details: {
+            error: err.message,
+            stack: err.stack,
+            timestamp: new Date().toISOString()
+        }
+    });
+});
+
 const PORT = process.env.PORT || 8888;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

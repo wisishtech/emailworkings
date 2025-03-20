@@ -156,9 +156,9 @@
 
     <script>
         // Zoho configuration (replace these with your actual values)
-        const ZOHO_ACCESS_TOKEN = '1000.IO9830I3OKKDPOODQB9HRLHFO7HH2K'; // From Zoho API Console
-        const ZOHO_ACCOUNT_ID = '882558182'; // From Zoho API
-        const ZOHO_SENDER_EMAIL = 'admin@wisishtech.com'; // Your verified Zoho email
+        const ZOHO_ACCESS_TOKEN = '1000.IO9830I3OKKDPOODQB9HRLHFO7HH2K';
+        const ZOHO_ACCOUNT_ID = '882558182';
+        const ZOHO_SENDER_EMAIL = 'admin@wisishtech.com';
 
         // Template content
         const templates = {
@@ -279,53 +279,122 @@
         }
 
         async function handleSubmit(event) {
-                event.preventDefault();
-                
-                setButtonLoading(true);
-                
-                const form = event.target;
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData);
-                const { recipient, subject, template, name, company, customContent } = data;
+            event.preventDefault();
+            
+            setButtonLoading(true);
+            const errorDisplay = document.getElementById('error-message') || createErrorDisplay();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            const { recipient, subject, template, name, company, customContent } = data;
 
-                let emailContent = templates[template];
-                if (template === 'custom') {
-                    emailContent = customContent || '<p>No custom content provided yet.</p>';
-                }
-                emailContent = emailContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
-
-                try {
-                    const response = await fetch('http://localhost:8888/api/send-email', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            recipient: recipient,
-                            subject: subject,
-                            content: emailContent
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(result.message || 'Failed to send email');
-                    }
-
-                    setButtonLoading(false);
-                    document.getElementById('success-message').style.display = 'block';
-                    
-                    setTimeout(() => {
-                        document.getElementById('success-message').style.display = 'none';
-                    }, 5000);
-                } catch (error) {
-                    setButtonLoading(false);
-                    console.error('Error sending email:', error);
-                    alert('Failed to send email: ' + error.message);
-                }
-
+            // Client-side validation
+            if (!recipient || !subject || !name || !company) {
+                displayError('Please fill in all required fields', { 
+                    missingFields: { recipient: !recipient, subject: !subject, name: !name, company: !company }
+                });
+                setButtonLoading(false);
                 return false;
+            }
+
+            let emailContent = templates[template];
+            if (template === 'custom') {
+                emailContent = customContent || '<p>No custom content provided yet.</p>';
+            }
+            emailContent = emailContent.replace(/\{\{name\}\}/g, name).replace(/\{\{company\}\}/g, company);
+
+            try {
+                const response = await fetch('http://localhost:8888/api/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        recipient: recipient,
+                        subject: subject,
+                        content: emailContent
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to send email', {
+                        cause: {
+                            status: response.status,
+                            details: result.details,
+                            data: result
+                        }
+                    });
+                }
+
+                setButtonLoading(false);
+                showSuccess();
+            } catch (error) {
+                setButtonLoading(false);
+                console.error('Detailed client-side error:', {
+                    message: error.message,
+                    cause: error.cause,
+                    stack: error.stack
+                });
+                displayError(error.message, error.cause);
+            }
+
+            return false;
+        }
+
+        function createErrorDisplay() {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'error-message';
+            errorDiv.className = 'error-message';
+            errorDiv.style.cssText = `
+                display: none;
+                background-color: #f8d7da;
+                color: #721c24;
+                padding: 15px;
+                border-radius: 4px;
+                margin-top: 20px;
+            `;
+            document.querySelector('form').appendChild(errorDiv);
+            return errorDiv;
+        }
+
+        function displayError(message, details = {}) {
+            const errorDiv = document.getElementById('error-message');
+            let errorDetails = `<strong>Error:</strong> ${message}`;
+            
+            if (details) {
+                errorDetails += '<ul>';
+                if (details.missingFields) {
+                    errorDetails += '<li>Missing fields: ' + Object.keys(details.missingFields)
+                        .filter(key => details.missingFields[key])
+                        .join(', ') + '</li>';
+                }
+                if (details.status) {
+                    errorDetails += `<li>Status: ${details.status}</li>`;
+                }
+                if (details.details) {
+                    errorDetails += `<li>Server details: ${JSON.stringify(details.details)}</li>`;
+                }
+                errorDetails += '</ul>';
+            }
+
+            errorDiv.innerHTML = errorDetails;
+            errorDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 10000);
+        }
+
+        function showSuccess() {
+            const successDiv = document.getElementById('success-message');
+            successDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
         }
 
         const inputs = document.querySelectorAll('input, textarea, select');
