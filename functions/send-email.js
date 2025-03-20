@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+// functions/send-email.js
 
 const ZOHO_ACCESS_TOKEN = '1000.FT9PKUR8G68TM41FLAFSJTF681K3WG';
 const ZOHO_ACCOUNT_ID = '824284292';
@@ -38,6 +38,9 @@ exports.handler = async (event, context) => {
         }),
       };
     }
+
+    // Dynamically import node-fetch
+    const { default: fetch } = await import('node-fetch');
 
     const response = await fetch(
       `https://mail.zoho.com/api/accounts/${ZOHO_ACCOUNT_ID}/messages`,

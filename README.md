@@ -7,13 +7,14 @@ This project provides a form interface to select and send email templates using 
 ### 1. Project Structure
 
 ```
-your-project/
+email-workings/
 ├── public/
-│   └── index.html  (your existing HTML file)
+│   └── index.html
 ├── functions/
-│   └── send-email.js  (new file for the Netlify Function)
+│   └── send-email.js
 ├── package.json
-└── netlify.toml
+├── netlify.toml
+└── node_modules/  (after npm install)
 ```
 
 ### 2. Installation
