@@ -1,82 +1,79 @@
-# Email Template Sender with Zoho Integration
+# Email Template Sender
 
-This project provides a form interface to select and send email templates using the Zoho Mail API through a Netlify serverless function.
+A simple web application to send templated emails using Nodemailer with Gmail SMTP.
 
-## Implementation Guide
+## Features
+- Predefined email templates (Welcome, Newsletter, Promotion, Custom)
+- Real-time email preview
+- Form validation
+- Loading states and success messages
+- Gmail SMTP integration via Nodemailer
 
-### 1. Project Structure
+## Prerequisites
+- Node.js (v14 or higher)
+- Gmail account with 2-Factor Authentication enabled
+- Gmail App Password (generated from Google Account settings)
 
-```
-email-workings/
+## Project Structure
+
+email-sender/
 ├── public/
-│   └── index.html
-├── functions/
-│   └── send-email.js
-├── package.json
-├── netlify.toml
-└── node_modules/  (after npm install)
-```
+│   └── index.html    # Client-side HTML form
+├── .env              # Environment variables
+├── server.js         # Server-side logic with Nodemailer
+├── package.json      # Dependencies and scripts
+└── README.md         # This file
 
-### 2. Installation
 
-1. Install dependencies:
-```bash
-npm install
-```
+## Setup Instructions
 
-2. Start the development server:
-```bash
-npm run dev
-```
+1. **Clone the Repository**
+   ```bash
+   git clone <repository-url>
+   cd email-sender
+    ```
 
-This will start Netlify Dev, which will serve your frontend and functions locally.
+2. **Install Dependencies**
+    ```bash
+    npm install
 
-### 3. Environment Variables
+    ```
 
-In production, you should set the following environment variables in the Netlify dashboard:
+3. **Generate Gmail App Password**
+Go to [Google Account](https://myaccount.google.com/)
 
-- `ZOHO_ACCESS_TOKEN`: Your Zoho Mail API access token
-- `ZOHO_ACCOUNT_ID`: Your Zoho account ID
-- `ZOHO_SENDER_EMAIL`: Your verified sender email in Zoho
+- Enable 2-Factor Authentication
+- Navigate to Security > App passwords
+- Generate a new App Password for this app
+- Copy the 16-character password
 
-For local development, you can set these in the `.env` file:
+4. **Configure Environment Variables**
+Create a .env file in the root directory:
+    ```
+    GMAIL_USER=your-email@gmail.com
+    GMAIL_PASS=your-16-character-app-password
+    PORT=3000  # Optional: defaults to 3000
+    ```
 
-```
-ZOHO_ACCESS_TOKEN=your-token-here
-ZOHO_ACCOUNT_ID=your-account-id
-ZOHO_SENDER_EMAIL=your-sender-email
-```
+5. **Run the application**  
+   ```bash
+    node server.js
+    ```
+    Open your browser to http://localhost:3200
 
-### 4. Deploy to Netlify
+##  Usage
 
-1. Push your code to a Git repository (GitHub, GitLab, etc.)
-2. Connect your repository to Netlify
-3. Configure the build settings in Netlify:
-   - Build command: Leave empty if no build step is needed
-   - Publish directory: `.` (or your build output directory)
-4. Add the environment variables in the Netlify dashboard under Site settings > Environment variables
-5. Deploy your site
+- Fill out the form with recipient details
+- Choose a template or create a custom one
+- Preview updates in real-time
+- Click "Send Email" to send via Gmail SMTP
 
-### 5. About CORS
+## Security Notes
 
-By using a Netlify Function, we avoid CORS issues because:
+- Keep `.env` in `.gitignore` to avoid exposing credentials
+- Use an App password instead of your regular Gmail password
+- Deploy to Heroky, Render or Vercel for Production use.
 
-1. The browser only makes requests to your own domain (same-origin)
-2. The serverless function makes the cross-origin request to Zoho's API server-side
-3. The function adds CORS headers to its responses to allow your frontend to communicate with it
+## License
 
-### 6. Zoho API Token Management
-
-Note that Zoho access tokens expire. In a production environment, you should implement:
-
-1. Token refresh mechanism 
-2. Secure storage of refresh tokens
-3. Error handling for expired tokens
-
-For a complete implementation, consider using Zoho's OAuth flow for more reliable token management.
-
-### 7. Troubleshooting
-
-- If you encounter 401 errors, your Zoho token may have expired
-- If you see 404 errors, check your account ID and API endpoints
-- For CORS errors in development, ensure you're using Netlify Dev which properly routes function requests
+`Wisish Tech`

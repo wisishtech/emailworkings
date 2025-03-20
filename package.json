@@ -1,7 +1,7 @@
 {
   "name": "email-workings",
   "version": "1.0.0",
-  "description": "This project provides a form interface to select and send email templates using the Zoho Mail API through a Netlify serverless function.",
+  "description": "A simple web application to send templated emails using Nodemailer with Gmail SMTP.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,8 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "node-fetch": "^3.3.2"
+    "nodemailer": "^6.10.0"
   }
 }
