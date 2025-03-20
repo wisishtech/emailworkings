@@ -9,9 +9,9 @@ This project provides a form interface to select and send email templates using 
 ```
 /
 ├── index.html                   # Main HTML form
-├── functions/                   # Netlify Functions folder
-│   └── send-email.js            # Serverless function for email sending
-├── netlify.toml                 # Netlify configuration
+├── public/                   # Frontend folder
+│   └── index.html           # Frontend website for email sending
+├── server.js               # Server configuration
 └── package.json                 # Dependencies for the project
 ```
 
