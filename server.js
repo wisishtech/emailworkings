@@ -27,11 +27,11 @@ transporter.verify((error, success) => {
 // Email sending function
 async function sendMail(to, subject, html) {
     const mailOptions = {
-        from: process.env.GMAIL_USER,
+        from: `"Work" <${process.env.GMAIL_USER}>`,
         to: to,
         subject: subject,
         html: html
-    };
+    };    
 
     try {
         const info = await transporter.sendMail(mailOptions);
