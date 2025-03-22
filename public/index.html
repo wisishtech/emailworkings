@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netlify Form with Email Template</title>
+    <title>Email Form with Email Template</title>
     <style>
         /* Your existing CSS remains unchanged */
         body {
@@ -220,29 +220,32 @@
             `,
             promotion: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea;">
-                    <div style="background-color: #ff6b6b; padding: 20px; text-align: center; color: white;">
-                        <h2>Special Offer Just For You!</h2>
-                    </div>
-                    <div style="padding: 20px;">
-                        <p>Hello {{name}},</p>
-                        <p>We're excited to offer you an exclusive discount on our premium services!</p>
-                        <div style="background-color: #ffe9e9; border: 2px dashed #ff6b6b; padding: 15px; text-align: center; margin: 20px 0;">
-                            <h3 style="color: #ff6b6b; margin: 0;">25% OFF</h3>
-                            <p>Use code: <strong>SPECIAL25</strong> at checkout</p>
-                            <p style="font-size: 12px;">Valid until April 15, 2025</p>
-                        </div>
-                        <p>Don't miss this opportunity to upgrade your experience with {{company}}!</p>
-                        <div style="text-align: center; margin: 25px 0;">
-                            <a href="#" style="background-color: #ff6b6b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">SHOP NOW</a>
-                        </div>
-                        <p>Thank you for being a valued customer!</p>
-                        <p>Best regards,<br>The {{company}} Team</p>
-                    </div>
-                    <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666;">
-                        <p>© 2025 {{company}}. All rights reserved.</p>
-                        <p><a href="#" style="color: #ff6b6b;">Unsubscribe</a> | <a href="#" style="color: #ff6b6b;">Privacy Policy</a></p>
-                    </div>
+                <div style="background-color: #0066cc; padding: 20px; text-align: center; color: white;">
+                    <h2>Special Offer Just For You!</h2>
                 </div>
+                <div style="text-align: center; margin: 15px 0;">
+                    <img src="https://res.cloudinary.com/dhmhr6wy3/image/upload/v1742602222/logo_z8pcvn.png" alt="Company Logo" style="max-width: 150px; height: auto;" />
+                </div>
+                <div style="padding: 20px;">
+                    <p>Hello {{name}},</p>
+                    <p>We're excited to offer you an exclusive discount on our premium services!</p>
+                    <div style="background-color: #e6f2ff; border: 2px dashed #0066cc; padding: 15px; text-align: center; margin: 20px 0;">
+                        <h3 style="color: #0066cc; margin: 0;">70% OFF</h3>
+                        <p>Use code: <strong>SPECIAL70</strong> at checkout</p>
+                        <p style="font-size: 12px;">Valid until March 30, 2025</p>
+                    </div>
+                    <p>Don't miss this opportunity to have an amazing experience with {{company}}!</p>
+                    <div style="text-align: center; margin: 25px 0;">
+                        <a href="https://google-auth-u378.onrender.com" style="background-color: #0066cc; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">CLAIM NOW</a>
+                    </div>
+                    <p>Thank you for being a valued customer!</p>
+                    <p>Best regards,<br>The {{company}} Team</p>
+                </div>
+                <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666;">
+                    <p>© 2025 {{company}}. All rights reserved.</p>
+                    <p><a href="#" style="color: #0066cc;">Unsubscribe</a> | <a href="#" style="color: #0066cc;">Privacy Policy</a></p>
+                </div>
+            </div>
             `,
             custom: ``
         };
